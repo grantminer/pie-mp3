@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int IR1PIN = 9;
-int IR2PIN = 10;
+int IR1PIN = A0;
+int IR2PIN = A1;
 char outString;
 
 void setup() {
@@ -15,7 +15,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print(digitalRead(IR1PIN));
+  Serial.print(analogRead(IR1PIN));
   Serial.print(",");
-  Serial.println(digitalRead(IR2PIN));
+  Serial.println(analogRead(IR2PIN));
 }

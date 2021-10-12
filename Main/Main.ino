@@ -1,13 +1,10 @@
-/*
-This is a test sketch for the Adafruit assembled Motor Shield for Arduino v2
-It won't work with v1.x motor shields! Only for the v2's with built in PWM
-control
-
-For use with the Adafruit Motor Shield v2
----->  http://www.adafruit.com/products/1438
-*/
-
 #include <Adafruit_MotorShield.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int IR1PIN = A0;
+int IR2PIN = A1;
+char outString;
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
@@ -15,14 +12,14 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 // Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61);
 
 // Select which 'port' M1, M2, M3 or M4. In this case, M1
-Adafruit_DCMotor *motor1 = AFMS.getMotor(1);
+Adafruit_DCMotor *motorLeft = AFMS.getMotor(1);
 // You can also make another motor on port M2
-Adafruit_DCMotor *motor2 = AFMS.getMotor(2);
+Adafruit_DCMotor *motorRight = AFMS.getMotor(2);
 
 void setup() {
   Serial.begin(9600);           // set up Serial library at 9600 bps
-  Serial.println("Adafruit Motorshield v2 - DC Motor test!");
-
+  pinMode(IR1PIN, INPUT);
+  pinMode(IR2PIN, INPUT);
   if (!AFMS.begin()) {         // create with the default frequency 1.6KHz
   // if (!AFMS.begin(1000)) {  // OR with a different frequency, say 1KHz
     Serial.println("Could not find Motor Shield. Check wiring.");
@@ -31,27 +28,38 @@ void setup() {
   Serial.println("Motor Shield found.");
 
   // Set the speed to start, from 0 (off) to 255 (max speed)
-  motor1->setSpeed(20);
-  motor2->setSpeed(20);
-  motor1->run(FORWARD);
-  motor2 -> run(FORWARD);
+  motorLeft->setSpeed(100);
+  motorRight->setSpeed(100);
+  motorLeft->run(FORWARD);
+  motorRight->run(FORWARD);
   // turn on motor
-  motor1->run(RELEASE);
-  motor2->run(RELEASE);
+  motorLeft->run(RELEASE);
+  motorRight->run(RELEASE);
 }
 
 void loop() {
-  uint8_t i;
+  motorLeft->run(FORWARD);
+  motorLeft->run(FORWARD);
 
-  Serial.print("tick");
-
-  for (int i = 0; i < 1000; i++) {
-    motor1->run(FORWARD);
-    motor2->run(FORWARD);
+  while (!leftSeesBlack() && !rightSeesBlack()) { //it's following the right edge of the line
+    motorRight->run(FORWARD);
+    motorLeft->run(FORWARD);
+  if (leftSeesBlack()) { //stop left motor, keep right motor running to drive back to line
+    motorLeft->run(RELEASE);
+    motorRight->run(FORWARD);
   }
-  
-  Serial.print("tech");
-  motor1->run(RELEASE);
-  motor2->run(RELEASE);
-  delay(1000);
+  if (rightSeesBlack()) {
+    motorRight->run(RELEASE);
+    motorLeft->run(FORWARD);
+  }
+  }
+}
+
+void leftSeesBlack() {
+  Serial.print(analogRead(IR1PIN));
+}
+
+
+void rightSeesBlack() {
+  Serial.println(analogRead(IR2PIN));
 }
