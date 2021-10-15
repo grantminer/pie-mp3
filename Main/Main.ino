@@ -55,11 +55,28 @@ void loop() {
   }
 }
 
-void leftSeesBlack() {
-  Serial.print(analogRead(IR1PIN));
+void move(right_speed, left_speed) {
+  if (left_speed == 0 && right_speed == 0) {
+    motorLeft->run(RELEASE);
+    motorRight->run(RELEASE);
+  }
+  else {
+  motorLeft->setSpeed(left_speed);
+  motorRight->setSpeed(right_speed);
+  motorLeft->run(FORWARD);
+  motorRight->run(FORWARD);
+  }
 }
 
 
-void rightSeesBlack() {
-  Serial.println(analogRead(IR2PIN));
+void serialread() {
+  input = Serial.read;
+  
+}
+
+void serialwrite(right_speed, left_speed) {
+  Serial.println(analogRead(IR1PIN));  Serial.print(",");
+  Serial.print(analogRead(IR2PIN));  Serial.print(",");
+  Serial.print(right_speed);  Serial.print(",");
+  Serial.print(left_speed);
 }

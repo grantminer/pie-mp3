@@ -13,23 +13,22 @@ def MovementLogic(left_bool, right_bool, left_speed, right_speed, threshold):
     stop_speed = 0
 
     #Case One: Nothing on the line
-    if left_bool and right_bool False:
+    if not left_bool and not right_bool:
         left_speed = cruising_speed
         right_speed = cruising_speed
 
-    
     #Case Two: left sensor hits line
-    if left_bool True and right_bool False:
+    if left_bool and not right_bool:
         right_speed = catchup_speed
         left_speed = catchup_speed
 
     #Case Three: right sensor hits line
-    if left_bool False and right_bool True:
+    if not left_bool and right_bool:
         left_speed = catchup_speed
         right_speed = slowdown_speed
 
     #Case Four: both sensors hit line
-    if left_bool True and right_bool True:
+    if left_bool and right_bool:
         right_speed = stop_speed
         left_speed = stop_speed
     

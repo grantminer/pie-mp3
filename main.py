@@ -7,7 +7,10 @@ import numpy as np
 from Controller import MovementLogic
 from seesBlack import seesBlack
 
-ser = serial.Serial("dev/cu.usbmodem14101", 9600)
+try:
+    ser = serial.Serial("COM4", 9600)
+except:
+    ser = serial.Serial("COM5", 9600)
 
 endline = re.compile(r'endL')
 endkey = re.compile(r'DONE')
