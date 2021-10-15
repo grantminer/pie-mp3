@@ -1,11 +1,9 @@
-import os
 import serial
 import re
-import time
-import math
-import numpy as np
 from Controller import MovementLogic
 from seesBlack import seesBlack
+import keyboard
+from take_input import live_edit
 
 try:
     ser = serial.Serial("COM4", 9600)
@@ -13,9 +11,8 @@ except:
     ser = serial.Serial("COM5", 9600)
 
 endline = re.compile(r'endL')
-endkey = re.compile(r'DONE')
 
-THRESHOLD = 512
+THRESHOLD = 350
 
 def receive_data():
     # Receive data over serial from arduino.
@@ -50,16 +47,23 @@ def write_data(left, right, left_speed, right_speed, threshold):
     #   right: Boolean that represents whether right sensor sees black
     #   newThreshold: integer that represents where the cutoff from white to black should be
 
-    left_speed, right_speed = MovementLogic(left, right, left_speed, right_speed, threshold)
+    left_bool, right_bool = seesBlack(left, right, threshold)
 
-    ser.write(left_speed + ", " + right_speed)
+    left_speed1, right_speed1 = MovementLogic(left_bool, right_bool, left_speed, right_speed)
 
-
+    if not (left_speed1 is left_speed and right_speed1 is right_speed):
+        ser.write(left_speed1 + ", " + right_speed1)
 
 print("Driving...")
 
+threshold = THRESHOLD
+
 while True:
+
     ser_out = receive_data()
 
-    write_data(ser_out[0], ser_out[1], ser_out[2], ser_out[3], ser_out[4])
+    if keyboard.read_key() == " ":
+        threshold = live_edit()
+
+    write_data(ser_out[0], ser_out[1], ser_out[2], ser_out[3], threshold)
 

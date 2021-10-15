@@ -1,6 +1,6 @@
 
 
-def MovementLogic(left_bool, right_bool, left_speed, right_speed, threshold):
+def MovementLogic(left_bool, right_bool, left_speed, right_speed):
     '''
     Decides which wheels should move at what speed
     Inputs: sensor booleans, current speeds, sensor thresholds
@@ -8,7 +8,7 @@ def MovementLogic(left_bool, right_bool, left_speed, right_speed, threshold):
     Outputs: wheel speeds
     '''
     cruising_speed =  100
-    slowdown_speed = 70
+    slowdown_speed = 30
     catchup_speed = 130
     stop_speed = 0
 
@@ -20,7 +20,7 @@ def MovementLogic(left_bool, right_bool, left_speed, right_speed, threshold):
     #Case Two: left sensor hits line
     if left_bool and not right_bool:
         right_speed = catchup_speed
-        left_speed = catchup_speed
+        left_speed = slowdown_speed
 
     #Case Three: right sensor hits line
     if not left_bool and right_bool:
