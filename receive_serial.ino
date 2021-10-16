@@ -5,8 +5,8 @@
 int IR1PIN = A0;
 int IR2PIN = A1;
 char outString;
-;
-
+char *strings[10];
+char *token = NULL;
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
@@ -29,8 +29,6 @@ void setup() {
   // Set the speed to start, from 0 (off) to 255 (max speed)
   motorLeft->setSpeed(100);
   motorRight->setSpeed(100);
-  motorLeft->run(FORWARD);
-  motorRight->run(FORWARD);
   // turn on motor
   motorLeft->run(FORWARD);
   motorLeft->run(FORWARD);
@@ -45,10 +43,35 @@ void loop() {
     // prints the received data
     Serial.print("I received: ");
     Serial.println(dataString);
-    //parse string
+  }
+  }
+  //parse string
+  data = dataString.c_str();
+  byte index = 0;
+  token = strtok(data, ",");  // new token from string, broken by commas
+    while(token != NULL){
+        strings[index] = token;
+        index++;
+        token = strtok(NULL, ":;");  // takes a list of delimiters
+    }
+    for(int n = 0; n < index; n++){ // print the tokens
+    Serial.println(strings[n]); //second and third should be motor speeds we want
+   }
+    motorLeft->setSpeed(strings[2]);
+    motorRight->setSpeed(strings[3]);
+    if (strings[2] > 0) {
+       motorLeft->run(FORWARD);
+    }
+    else {
+      motorLeft->run(BACKWARD);
+    }
+    if (strings[3] > 0) {
+       motorRight->run(FORWARD);
+    }
+    else {
+      motorRight->run(BACKWARD);
+    }
     serialwrite(dataString, dataString);
-  }
-  }
 }
 
 void move(right_speed, left_speed) {
