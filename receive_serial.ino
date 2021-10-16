@@ -57,15 +57,15 @@ void loop() {
     for(int n = 0; n < index; n++){ // print the tokens
     Serial.println(strings[n]); //second and third should be motor speeds we want
    }
-    motorLeft->setSpeed(strings[2]);
-    motorRight->setSpeed(strings[3]);
-    if (strings[2] > 0) {
+    motorLeft->setSpeed(strings[1]);
+    motorRight->setSpeed(strings[2]);
+    if (strings[1] > 0) {
        motorLeft->run(FORWARD);
     }
     else {
       motorLeft->run(BACKWARD);
     }
-    if (strings[3] > 0) {
+    if (strings[2] > 0) {
        motorRight->run(FORWARD);
     }
     else {
