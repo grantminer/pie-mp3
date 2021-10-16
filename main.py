@@ -2,15 +2,18 @@ import serial
 import re
 from Controller import MovementLogic
 from seesBlack import seesBlack
-import keyboard
+# import keyboard
 from take_input import live_edit
 
-try:
-    ser = serial.Serial("COM4", 9600)
-except:
-    ser = serial.Serial("COM5", 9600)
+# try:
+    # ser = serial.Serial("COM4", 9600)
+ser = serial.Serial("/dev/cu.usbmodem14101", 9600)
+    # ser = serial.Serial("/dev/ttyACM0", 9600)
+# except:
+#     ser = serial.Serial("COM5", 9600)
 
-endline = re.compile(r'endL')
+startline = re.compile(r'startArduino')
+endline = re.compile(r'endArduino')
 
 THRESHOLD = 350
 
@@ -31,8 +34,17 @@ def receive_data():
         # if endkey.search(line):
         #     return "0, 0, 0", True # Fix output logic
         
-        if endline.search(line):
-            line = line[:len(line)-4]
+        if startline.search(line):
+            line.split(sep = startline)
+            line = line[1]
+            while not endline.search(line):
+                bytesToRead = ser.inWaiting()
+                contents = ser.readline(bytesToRead).decode('utf-8')
+
+                line += contents
+            
+            line.split(sep = endline)
+            line = line[0]
 
             ser_list = line.split(", ")
             
@@ -52,18 +64,18 @@ def write_data(left, right, left_speed, right_speed, threshold):
     left_speed1, right_speed1 = MovementLogic(left_bool, right_bool, left_speed, right_speed)
 
     if not (left_speed1 is left_speed and right_speed1 is right_speed):
-        ser.write(left_speed1 + ", " + right_speed1)
-
-print("Driving...")
+        ser.write("startPython, " + left_speed1 + ", " + right_speed1 + ", endPython")
 
 threshold = THRESHOLD
+
+print("Driving...")
 
 while True:
 
     ser_out = receive_data()
 
-    if keyboard.read_key() == " ":
-        threshold = live_edit()
+    # if keyboard.read_key() == " ":
+    #     threshold = live_edit()
 
     write_data(ser_out[0], ser_out[1], ser_out[2], ser_out[3], threshold)
 

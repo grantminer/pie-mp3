@@ -8,7 +8,7 @@ def MovementLogic(left_bool, right_bool, left_speed, right_speed):
     Outputs: wheel speeds
     '''
     cruising_speed =  100
-    slowdown_speed = 30
+    slowdown_speed = -30
     catchup_speed = 130
     stop_speed = 0
 
