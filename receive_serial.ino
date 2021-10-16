@@ -52,7 +52,7 @@ void loop() {
     while(token != NULL){
         strings[index] = token;
         index++;
-        token = strtok(NULL, ":;");  // takes a list of delimiters
+        token = strtok(NULL, ",");  // takes a list of delimiters
     }
     for(int n = 0; n < index; n++){ // print the tokens
     Serial.println(strings[n]); //second and third should be motor speeds we want
