@@ -16,7 +16,7 @@ int stop_speed = 0;
 int ls = 40;
 int rs = 40;
 String param;
-int val;
+String val;
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
@@ -36,7 +36,7 @@ void setup() {
       Serial.println("Could not find Motor Shield. Check wiring.");
       while (1);
     }
-    Serial.println("Motor Shield found.");
+    //Serial.println("Motor Shield found.");
   
     // Set the speed to start, from 0 (off) to 255 (max speed)
     
@@ -49,18 +49,18 @@ void setup() {
 
 void loop() {
 
-//    newparams();
-//
-//    if (val) {
-//      threshold = val;
-//      Serial.println(val);
-//    }
+    newparams();
+
+    if (val.toInt()) {
+      threshold = val.toInt();
+      Serial.println(val);
+    }
 
     seesBlack();
     
     movementLogic(lb, rb, cb, threshold, cruise, slow, catchup);
 
-    //Serial.println("Made it!");
+    Serial.println("Made it!");
     motorLeft->run(RELEASE);
     motorRight->run(RELEASE);
 
@@ -130,14 +130,16 @@ int seesBlack() {
         rb = 1;
     }
 
-    Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.println(rs);
+    //Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.println(rs);
 }
 
 String newparams() {
-    val = 0;
+    val = "0";
     while (Serial.available()) {
       if (Serial.available() > 0) {
-        val = int(Serial.read());
+        while (val[val.length()] != "\n") {
+        val = val + char(Serial.read());
+        }
         Serial.println(val);
       }
     }
