@@ -9,15 +9,14 @@ int threshold = 500;
 int lb;
 int rb;
 int cb;
-int cruise = 40;
-int slow = -40;
-int catchup = 40;
+int cruise = 50;
+int slow = -50;
+int catchup = 50;
 int stop_speed = 0;
 int ls = 40;
 int rs = 40;
 String param;
-String val;
-String value;
+int val;
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
@@ -50,26 +49,18 @@ void setup() {
 
 void loop() {
 
-    newparams();
-
-    if (param && val) {
-      if (param == "cruise") {
-        cruise = val.toInt();
-      } else if (param == "slow") {
-        slow = val.toInt();
-      } else if (param == "catchup") {
-        catchup = val.toInt();
-      }
-    }
+//    newparams();
+//
+//    if (val) {
+//      threshold = val;
+//      Serial.println(val);
+//    }
 
     seesBlack();
     
-    ls = NULL;
-    rs = NULL;
-    
     movementLogic(lb, rb, cb, threshold, cruise, slow, catchup);
 
-    
+    //Serial.println("Made it!");
     motorLeft->run(RELEASE);
     motorRight->run(RELEASE);
 
@@ -88,7 +79,6 @@ void loop() {
     
     motorLeft->setSpeed(abs(ls));
     motorRight->setSpeed(abs(rs));
-    Serial.print("[");
     
 }
 
@@ -140,12 +130,21 @@ int seesBlack() {
         rb = 1;
     }
 
-    Serial.print("[");Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.print(rs); Serial.print("],");
+    Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.println(rs);
 }
 
 String newparams() {
-    if (Serial.available()>0) {
-      param = Serial.readStringUntil(":");
-      val = Serial.readStringUntil(";");
+    val = 0;
+    while (Serial.available()) {
+      if (Serial.available() > 0) {
+        val = int(Serial.read());
+        Serial.println(val);
+      }
     }
+
+//    if (Serial.available()>0) {
+//      char incoming = char(Serial.read());
+//
+//      Serial.println(incoming);
+//    }
 }
