@@ -7,7 +7,7 @@ from take_input import live_edit
 
 # try:
     # ser = serial.Serial("COM4", 9600)
-ser = serial.Serial("/dev/cu.usbmodem14101", 9600)
+ser = serial.Serial("/dev/cu.usbmodem14501", 9600)
     # ser = serial.Serial("/dev/ttyACM0", 9600)
 # except:
 #     ser = serial.Serial("COM5", 9600)
@@ -35,18 +35,9 @@ def receive_data():
         #     return "0, 0, 0", True # Fix output logic
         
         if startline.search(line):
-            line.split(sep = startline)
-            line = line[1]
-            while not endline.search(line):
-                bytesToRead = ser.inWaiting()
-                contents = ser.readline(bytesToRead).decode('utf-8')
 
-                line += contents
-            
-            line.split(sep = endline)
-            line = line[0]
-
-            ser_list = line.split(", ")
+            ser_list = line.split(",")
+            line = line[1:len(line)-1]
             
             return ser_list
 
@@ -64,7 +55,7 @@ def write_data(left, right, left_speed, right_speed, threshold):
     left_speed1, right_speed1 = MovementLogic(left_bool, right_bool, left_speed, right_speed)
 
     if not (left_speed1 is left_speed and right_speed1 is right_speed):
-        ser.write("startPython, " + left_speed1 + ", " + right_speed1 + ", endPython")
+        ser.write("startPython," + left_speed1 + "," + right_speed1 + ",endPython")
 
 threshold = THRESHOLD
 

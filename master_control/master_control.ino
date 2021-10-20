@@ -2,19 +2,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int IR1PIN = A0;
-int IR2PIN = A1;
-int left_speed = 100;;
-int right_speed = 100;;
-int threshold = 350;
-bool lb;
-bool rb;
-int cruise = 100;
-int slow = -30;
-int catchup = 130;
+int IR1PIN = A1;
+int IR2PIN = A2;
+int IR3PIN = A3;
+int threshold = 500;
+int lb;
+int rb;
+int cb;
+int cruise = 40;
+int slow = -40;
+int catchup = 40;
 int stop_speed = 0;
-int ls;
-int rs;
+int ls = 40;
+int rs = 40;
 String param;
 String val;
 String value;
@@ -31,6 +31,7 @@ void setup() {
     Serial.begin(9600);           // set up Serial library at 9600 bps
     pinMode(IR1PIN, INPUT);
     pinMode(IR2PIN, INPUT);
+    pinMode(IR3PIN, INPUT);
     if (!AFMS.begin()) {         // create with the default frequency 1.6KHz
     // if (!AFMS.begin(1000)) {  // OR with a different frequency, say 1KHz
       Serial.println("Could not find Motor Shield. Check wiring.");
@@ -40,17 +41,16 @@ void setup() {
   
     // Set the speed to start, from 0 (off) to 255 (max speed)
     
-    motorLeft->setSpeed(left_speed);
-    motorRight->setSpeed(right_speed);
+    motorLeft->setSpeed(ls);
+    motorRight->setSpeed(rs);
     // turn on motor
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
-    serialwrite(100, 100);
 }
 
 void loop() {
 
-    param, val = newparams();
+    newparams();
 
     if (param && val) {
       if (param == "cruise") {
@@ -62,97 +62,90 @@ void loop() {
       }
     }
 
-    lb, rb = seesBlack();
+    seesBlack();
     
     ls = NULL;
     rs = NULL;
     
-    ls, rs = movementLogic(lb, rb, left_speed, right_speed, threshold, cruise, slow, catchup);
+    movementLogic(lb, rb, cb, threshold, cruise, slow, catchup);
 
-    if (ls && rs) {
-      motorLeft->run(RELEASE);
-      motorRight->run(RELEASE);
-      motorLeft->setSpeed(abs(int(left_speed)));
-      motorRight->setSpeed(abs(int(right_speed)));
-      if (left_speed > 0) {
-         motorLeft->run(FORWARD);
-      }
-      else {
-        motorLeft->run(BACKWARD);
-      }
-      if (right_speed > 0) {
-         motorRight->run(FORWARD);
-      }
-      else {
-        motorRight->run(BACKWARD);
-      }
+    
+    motorLeft->run(RELEASE);
+    motorRight->run(RELEASE);
 
-      left_speed = ls; right_speed = rs;
-      
-      serialwrite(left_speed, right_speed);
+    if (ls > 0) {
+       motorLeft->run(FORWARD);
     }
+    else {
+      motorLeft->run(BACKWARD);
+    }
+    if (rs > 0) {
+       motorRight->run(FORWARD);
+    }
+    else {
+      motorRight->run(BACKWARD);
+    }
+    
+    motorLeft->setSpeed(abs(ls));
+    motorRight->setSpeed(abs(rs));
+    Serial.print("[");
+    
 }
 
-int movementLogic(bool lb, bool rb, int left_speed, int right_speed, int threshold, int cruise, int slow, int catchup) {
+int movementLogic(bool lb, bool rb, bool cb, int threshold, int cruise, int slow, int catchup) {
   
     if (!lb && !rb) {
       ls = cruise;
       rs = cruise;
-    }
-
-    if (lb && !rb) {
+    } else if (lb && !rb) {
       ls = slow;
       rs = catchup;
-    }
-
-    if (!lb && rb) {
+    } else if (!lb && rb) {
       ls = catchup;
       rs = slow;
-    }
-
-    if (lb && rb) {
+    } else if (lb && rb) {
       ls = stop_speed;
       rs = stop_speed;
     } else {
       ls = stop_speed;
       rs = stop_speed;
-      Serial.println("Edge Case (lb:"+ String(lb) + ", rb:" + String(rb) + ", ls:" + String(left_speed) + ", rs" + String(right_speed));
-    }
+      Serial.println("Edge Case (lb:"+ String(lb) + ", rb:" + String(rb) + ", ls:" + String(ls) + ", rs" + String(rs));
+    } 
 
-    if (!(ls == left_speed && rs == right_speed)) {
-      return ls, rs;
+    if (!cb && !lb && !rb) {
+      ls = cruise;
+      rs = -1 * cruise;
     }
 }
 
-bool seesBlack() {
+int seesBlack() {
+  
     int left_analog = analogRead(IR1PIN);
     int right_analog = analogRead(IR2PIN);
+    int center_analog = analogRead(IR3PIN);
+
+    lb = 0;
+    rb = 0;
+    cb = 0;
+
+    if (center_analog > threshold) {
+        cb = 1;
+    }
     
     if (left_analog > threshold) {
-          bool lb = false;
-    } else {
-          bool lb = true;
+        lb = 1;
     }
   
     if (right_analog > threshold) {
-        bool rb = false;
-    } else {
-        bool rb = true;
+        rb = 1;
     }
-    
-    return lb, rb;
-}
 
-void serialwrite(int left_speed, int right_speed) {
-    Serial.print(left_speed);  Serial.print(",");
-    Serial.println(right_speed);
+    Serial.print("[");Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.print(rs); Serial.print("],");
 }
 
 String newparams() {
     if (Serial.available()>0) {
-      String parameter = Serial.readStringUntil(":");
-      String newVal = Serial.readStringUntil(";");
-
-      return parameter, newVal;
+      param = Serial.readStringUntil(":");
+      val = Serial.readStringUntil(";");
     }
 }
