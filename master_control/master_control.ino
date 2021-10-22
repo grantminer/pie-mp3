@@ -49,18 +49,14 @@ void setup() {
 
 void loop() {
 
-    newparams();
-
-    if (val.toInt()) {
-      threshold = val.toInt();
-      Serial.println(val);
-    }
+    recvWithStartEndMarkers();
+    
+    Serial.println(threshold);
 
     seesBlack();
     
     movementLogic(lb, rb, cb, threshold, cruise, slow, catchup);
 
-    Serial.println("Made it!");
     motorLeft->run(RELEASE);
     motorRight->run(RELEASE);
 
@@ -68,13 +64,12 @@ void loop() {
        motorLeft->run(FORWARD);
     }
     else {
-      motorLeft->run(BACKWARD);
+       motorLeft->run(BACKWARD);
     }
     if (rs > 0) {
        motorRight->run(FORWARD);
-    }
-    else {
-      motorRight->run(BACKWARD);
+    } else if (rs < 0) {
+       motorRight->run(BACKWARD);
     }
     
     motorLeft->setSpeed(abs(ls));
@@ -130,7 +125,7 @@ int seesBlack() {
         rb = 1;
     }
 
-    //Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.print(right_analog); Serial.print(","); Serial.print(ls); Serial.print(","); Serial.println(rs);
+    Serial.print(left_analog); Serial.print(","); Serial.print(center_analog); Serial.print(","); Serial.println(right_analog); //Serial.print(","); Serial.print(ls); Serial.print(","); Serial.println(rs);
 }
 
 String newparams() {
@@ -149,4 +144,48 @@ String newparams() {
 //
 //      Serial.println(incoming);
 //    }
+}
+
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char startMarker = '<';
+    char endMarker = '>';
+    char rc;
+    String temp_thresh;
+    const byte numChars = 4;
+    char receivedChars[numChars];
+    char * strtokIndx;
+
+    boolean newData = false;
+ 
+ if (Serial.available() > 0) {
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (recvInProgress == true) {
+            if (rc != endMarker) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+            }
+        }
+
+        else if (rc == startMarker) {
+            recvInProgress = true;
+        }
+    }
+    if (rc == endMarker) {
+      strtokIndx = strtok(receivedChars, ",");
+      threshold = atoi(strtokIndx);
+    }
+ }
 }
